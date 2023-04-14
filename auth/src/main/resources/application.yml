@@ -1,0 +1,7 @@
+server:
+  port: 9000
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://auth:8gBHNu3VlX8yJ9pe@capacytordev.ln5upml.mongodb.net/?retryWrites=true&w=majority
+      database: auth

@@ -1,0 +1,5 @@
+package dev.capacytor.forms.entity.shared;
+
+public enum Currency {
+    KES, USD, UGX, TZS, GHS, ZAR, RWF, BIF, XAF, XOF, XPF, MGA, MRO, MUR, MVR, MWK, MXN, MYR, MZN, NAD, NGN, NIO, NOK, NPR, NZD, OMR, PAB, PEN, PGK, PHP, PKR, PLN, PYG, QAR, RON, RSD, RUB, SAR, SBD, SCR, SDG, SEK, SGD, SHP, SLL, SOS, SRD, SSP, STD, SVC, SYP, SZL, THB, TJS, TMT, TND, TOP, TRY, TTD, TWD, UAH, UYU, UZS, VEF, VND, VUV, WST, XAG, XAU, XCD, XDR, YER, ZMK, ZMW, ZWL
+}
