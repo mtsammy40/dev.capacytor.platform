@@ -1,5 +1,6 @@
 package dev.capacytor.forms.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.capacytor.forms.commons.form.stage.Stage;
 import dev.capacytor.forms.entity.shared.PaymentData;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Document(collection = "form-responses")
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FormResponse {
     @Transient
     private boolean isValid = false;
@@ -33,6 +35,7 @@ public class FormResponse {
     @Data
     @Builder
     @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class SectionResponse {
         Map<String, List<String>> fields;
     }
@@ -40,6 +43,7 @@ public class FormResponse {
     @Data
     @AllArgsConstructor
     @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class UserData {
         private String userId;
         private String email;
@@ -49,11 +53,26 @@ public class FormResponse {
     @Data
     @AllArgsConstructor
     @Builder
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class FormResponseStatus {
         private boolean isComplete;
         private Stage currentStage;
         private Stage[] pendingStages;
         private Stage[] completedStages;
+
+        public void moveToNextStage() {
+            var newCompletedStages = new HashSet<>(List.of(completedStages));
+            newCompletedStages.add(currentStage);
+            var newPendingStages = new HashSet<>(List.of(pendingStages));
+            if(pendingStages.length > 0) {
+                newPendingStages.remove(currentStage);
+                currentStage = pendingStages[0];
+                pendingStages = newPendingStages.toArray(new Stage[0]);
+            } else {
+                currentStage = null;
+            }
+            completedStages = newCompletedStages.toArray(new Stage[0]);
+        }
     }
 
     public void validate(Form form) {

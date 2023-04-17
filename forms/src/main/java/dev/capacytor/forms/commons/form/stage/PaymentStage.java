@@ -2,6 +2,7 @@ package dev.capacytor.forms.commons.form.stage;
 
 import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.entity.FormResponse;
+import dev.capacytor.forms.model.FormResponseSession;
 import lombok.*;
 
 import java.util.List;
@@ -20,6 +21,16 @@ public class PaymentStage extends Stage {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    @Override
+    public void execute(FormResponseSession formResponseSession) {
+        throw new UnsupportedOperationException("Payment stage is not implemented yet");
+    }
+
+    @Override
+    public boolean requiresExternalAction() {
+        return true;
     }
 
     @Builder

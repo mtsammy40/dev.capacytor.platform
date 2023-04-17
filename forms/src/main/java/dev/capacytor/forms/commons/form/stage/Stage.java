@@ -2,6 +2,7 @@ package dev.capacytor.forms.commons.form.stage;
 
 import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.entity.FormResponse;
+import dev.capacytor.forms.model.FormResponseSession;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -23,7 +24,13 @@ public abstract class Stage {
         return false;
     }
 
+    public boolean requiresExternalAction() {
+        return false;
+    }
+
     public abstract String getName();
+
+    public abstract void execute(FormResponseSession formResponseSession);
 
     @Override
     public boolean equals(Object obj) {
