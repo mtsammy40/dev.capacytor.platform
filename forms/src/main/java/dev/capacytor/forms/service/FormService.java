@@ -55,6 +55,10 @@ public class FormService {
 
     Form.Configuration getFormConfiguration(CreateFormDto createFormDto) {
         var formConfiguration = Form.Configuration.builder().build();
+        formConfiguration.getStages()
+                .add(new FillingStage(FillingStage
+                        .FillingStageConfiguration.builder()
+                        .build()));
         if(createFormDto.configuration() != null && createFormDto.configuration().stageConfiguration() != null) {
             var stageConfig = createFormDto.configuration().stageConfiguration();
             if(stageConfig.getFillingStageConfiguration() != null) {

@@ -5,8 +5,10 @@ import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.entity.FormResponse;
 import dev.capacytor.forms.entity.shared.PaymentData;
 import dev.capacytor.forms.model.CreateFormResponseDto;
+import dev.capacytor.forms.model.FormResponseSession;
 import dev.capacytor.forms.repository.FormResponseRepository;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FormResponseService {
     private final FormResponseRepository formResponseRepository;
     private final FormService formService;
@@ -38,8 +41,21 @@ public class FormResponseService {
                 .userData(userData)
                 .status(formStatus)
                 .build();
-        formResponse.validate(form);
-        return formResponseRepository.save(formResponse);
+
+        var responseSession = FormResponseSession.builder()
+                .form(form)
+                .response(formResponse)
+                .formService(formService)
+                .responseService(this)
+                .build();
+
+        while (!formResponse.getStatus().isComplete() && !formResponse.getStatus().getCurrentStage().requiresExternalAction()) {
+            log.debug("Executing stage : {}", formResponse.getStatus().getCurrentStage().getClass().getSimpleName());
+            responseSession.getResponse().getStatus().getCurrentStage().execute(responseSession);
+            responseSession.getResponse().getStatus().moveToNextStage();
+        }
+
+       return formResponseRepository.save(responseSession.getResponse());
     }
 
     private FormResponse.FormResponseStatus computeInitialFormReturnStatus(Form form) {
