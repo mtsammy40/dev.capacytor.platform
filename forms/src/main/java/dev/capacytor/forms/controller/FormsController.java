@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
+@CrossOrigin(origins = "*")
 @RestController()
 @RequestMapping("/form")
 @Slf4j
@@ -33,5 +34,10 @@ public class FormsController {
     @GetMapping("/{id}")
     public ResponseEntity<Object> getForm(@PathVariable String id) {
         return ResponseEntity.ok(formService.getForm(id));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<Object> getForms() {
+        return ResponseEntity.ok(formService.getForms());
     }
 }

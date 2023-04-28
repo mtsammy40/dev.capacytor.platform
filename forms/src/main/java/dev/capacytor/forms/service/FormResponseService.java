@@ -29,6 +29,7 @@ public class FormResponseService {
     }
 
     public FormResponse createFormResponse(@Valid CreateFormResponseDto createFormResponseDto) {
+        log.info("Creating form response for form : {}", createFormResponseDto);
         var form = formService.getForm(createFormResponseDto.formId());
         var userData = getUserData();
         var formStatus = computeInitialFormReturnStatus(form);
@@ -49,7 +50,7 @@ public class FormResponseService {
                 .responseService(this)
                 .build();
 
-        while (!formResponse.getStatus().isComplete() && !formResponse.getStatus().getCurrentStage().requiresExternalAction()) {
+        while (!formResponse.getStatus().isComplete() && formResponse.getStatus().getCurrentStage() != null && !formResponse.getStatus().getCurrentStage().requiresExternalAction()) {
             log.debug("Executing stage : {}", formResponse.getStatus().getCurrentStage().getClass().getSimpleName());
             responseSession.getResponse().getStatus().getCurrentStage().execute(responseSession);
             responseSession.getResponse().getStatus().moveToNextStage();

@@ -1,7 +1,10 @@
 package dev.capacytor.forms.service;
 
 import dev.capacytor.forms.commons.IdGenerator;
-import dev.capacytor.forms.commons.form.stage.*;
+import dev.capacytor.forms.commons.form.stage.CompletedStage;
+import dev.capacytor.forms.commons.form.stage.FillingStage;
+import dev.capacytor.forms.commons.form.stage.PaymentStage;
+import dev.capacytor.forms.commons.form.stage.VerificationStage;
 import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.model.CreateFormDto;
 import dev.capacytor.forms.repository.FormRepository;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -34,6 +38,10 @@ public class FormService {
         var createdForm = formRepository.save(formBuilder.build());
         log.info("Form created : {}", createdForm.getId());
         return createdForm;
+    }
+
+    public Collection<Form> getForms() {
+        return formRepository.findAll();
     }
 
     List<Form.Section> getSections(CreateFormDto createFormDto) {

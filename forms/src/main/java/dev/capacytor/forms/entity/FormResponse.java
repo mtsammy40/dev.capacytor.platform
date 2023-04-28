@@ -77,6 +77,7 @@ public class FormResponse {
 
     public void validate(Form form) {
         log.info("Validating Form Response for formResponseId : {}", id);
+        log.info("Form Response : {}", this);
         List<String> errors = new ArrayList<>();
         for (Map.Entry<String, SectionResponse> entry : sections.entrySet()) {
             log.debug("validating section : {}", entry.getKey());
@@ -86,14 +87,9 @@ public class FormResponse {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Section not found"));
 
-            for (String fieldId : entry.getValue().getFields().keySet()) {
-                var formField = formSection.getFields()
-                        .stream()
-                        .filter(field -> field.getId().equals(fieldId))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("Field not found"));
-                var fieldResponse = entry.getValue().getFields().get(fieldId);
-                log.debug("validating field : id {}, type: {}, values: {}", fieldId, formField.getType(), fieldResponse);
+            for (var formField : formSection.getFields()) {
+                var fieldResponse = entry.getValue().getFields().get(formField.getId());
+                log.debug("validating field : id {}, type: {}, values: {}", formField.getId(), formField.getType(), fieldResponse);
                 validateField(formField, fieldResponse, errors);
             }
         }
@@ -108,6 +104,9 @@ public class FormResponse {
     }
 
     void validateField(Form.Field formField, List<String> fieldResponse, List<String> errors) {
+        if(fieldResponse == null) {
+            fieldResponse = new ArrayList<>();
+        }
         if (formField.getIsRequired() && (fieldResponse.isEmpty() || fieldResponse.get(0).isBlank())) {
             errors.add("Field " + formField.getName() + " is required");
         }
