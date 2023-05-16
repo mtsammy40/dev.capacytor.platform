@@ -45,7 +45,7 @@ public class FormService {
     }
 
     List<Form.Section> getSections(CreateFormDto createFormDto) {
-       return createFormDto.sections()
+        return createFormDto.sections()
                 .stream()
                 .map(section -> Form.Section.builder()
                         .id(IdGenerator.generate("sc_"))
@@ -55,7 +55,10 @@ public class FormService {
                                 .id(IdGenerator.generate("fl_"))
                                 .name(field.name())
                                 .type(field.type())
-                                .options(field.options())
+                                .options(field.options().stream()
+                                        .map(option -> Form.Field.Option.builder()
+                                                .value(option.value())
+                                                .build()).toList())
                                 .build()).toList())
                         .build())
                 .toList();
@@ -67,9 +70,9 @@ public class FormService {
                 .add(new FillingStage(FillingStage
                         .FillingStageConfiguration.builder()
                         .build()));
-        if(createFormDto.configuration() != null && createFormDto.configuration().stageConfiguration() != null) {
+        if (createFormDto.configuration() != null && createFormDto.configuration().stageConfiguration() != null) {
             var stageConfig = createFormDto.configuration().stageConfiguration();
-            if(stageConfig.getFillingStageConfiguration() != null) {
+            if (stageConfig.getFillingStageConfiguration() != null) {
                 if (formConfiguration.getStages().get(0) instanceof FillingStage fillingStage) {
                     if (StringUtils.hasText(stageConfig.getFillingStageConfiguration().getHeaderImageUrl())) {
                         fillingStage
@@ -99,6 +102,10 @@ public class FormService {
     public Form getForm(String id) {
         return formRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Form not found"));
+    }
+
+    public void deleteForm(String id) {
+        formRepository.deleteById(id);
     }
 
 }

@@ -46,8 +46,15 @@ public record CreateFormDto(
                 @NotEmpty(message = "Options are required")
                 @NotNull(message = "Options are required")
                 @Max(value = Constants.MAX_OPTIONS_ALLOWED, message = "Max options allowed exceeded")
-                List<String> options
+                List<Options> options
         ) {
+                public record Options(
+                        @NotEmpty(message = "Option value are required")
+                        @NotNull(message = "Options are required")
+                        @Max(value = Constants.MAX_TEXT_LENGTH, message = "Max options allowed exceeded")
+                        String value
+                ) {
+                }
         }
 
         public record Configuration(

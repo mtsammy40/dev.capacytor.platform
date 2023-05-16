@@ -35,9 +35,16 @@ public class Form {
         private String name;
         private FieldType type;
         @Builder.Default
-        private List<String> options = new ArrayList<>();
+        private List<Option> options = new ArrayList<>();
         @Builder.Default
         private Boolean isRequired = false;
+
+        @Data
+        @Builder
+        @AllArgsConstructor
+        public static class Option {
+            String value;
+        }
     }
 
     @Data

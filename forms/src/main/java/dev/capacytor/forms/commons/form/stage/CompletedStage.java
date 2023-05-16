@@ -1,5 +1,6 @@
 package dev.capacytor.forms.commons.form.stage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.entity.FormResponse;
 import dev.capacytor.forms.model.FormResponseSession;
@@ -32,6 +33,7 @@ public class CompletedStage extends Stage{
     }
 
     @Override
+    @JsonIgnore
     public boolean isComplete() {
         return true;
     }

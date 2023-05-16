@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,15 +29,15 @@ public class FormResponseService {
         this.formService = formService;
     }
 
-    public FormResponse createFormResponse(@Valid CreateFormResponseDto createFormResponseDto) {
+    public FormResponse createFormResponse(String formId,  @Valid CreateFormResponseDto createFormResponseDto) {
         log.info("Creating form response for form : {}", createFormResponseDto);
-        var form = formService.getForm(createFormResponseDto.formId());
+        var form = formService.getForm(formId);
         var userData = getUserData();
         var formStatus = computeInitialFormReturnStatus(form);
         var paymentData = getPaymentData(createFormResponseDto.paymentId());
         var formResponse = FormResponse.builder()
                 .id(generateFormResponseId())
-                .formId(createFormResponseDto.formId())
+                .formId(form.getId())
                 .sections(generateSections(createFormResponseDto))
                 .paymentData(paymentData)
                 .userData(userData)
@@ -88,6 +89,11 @@ public class FormResponseService {
         return formResponseRepository
                 .findById(id)
                 .orElseThrow(() -> new RuntimeException("Form Response not found"));
+    }
+
+    public List<FormResponse> getFormResponsesByFormId(String formId) {
+        return formResponseRepository
+                .findAllByFormId(formId);
     }
 
     private Map<String, FormResponse.SectionResponse> generateSections(CreateFormResponseDto createFormResponseDto) {
