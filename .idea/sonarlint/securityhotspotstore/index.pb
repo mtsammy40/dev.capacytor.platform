@@ -243,9 +243,6 @@ Q.idea/sonarlint/securityhotspotstore/e/7/e7a047f1489e0d8df0919890a11fc34cd05428
 Q.idea/sonarlint/securityhotspotstore/8/3/83f36b88bbf656f795086d164952abe8f8757389,1/6/161bf3e8922c3656c30b14f7afc6f97c65cb5195
 p
 @forms/src/main/java/dev/capacytor/forms/entity/FormResponse.java,8/a/8ac3cf5807f101ea816803c38c7756aa0ecd8d06
-:
-
-.gitignore,a/5/a5cc2925ca8258af241be7e5b0381edf30266302
 m
 =forms/src/main/java/dev/capacytor/forms/FormsApplication.java,0/9/09a014f551b7a9e4b9085aea5bd4c7bdb08f7a75
 n
