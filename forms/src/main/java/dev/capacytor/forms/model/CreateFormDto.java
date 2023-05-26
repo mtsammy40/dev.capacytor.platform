@@ -1,7 +1,9 @@
 package dev.capacytor.forms.model;
 
 import dev.capacytor.forms.commons.Constants;
-import dev.capacytor.forms.commons.form.stage.*;
+import dev.capacytor.forms.commons.form.stage.FillingStage;
+import dev.capacytor.forms.commons.form.stage.PaymentStage;
+import dev.capacytor.forms.commons.form.stage.VerificationStage;
 import dev.capacytor.forms.entity.Form;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;

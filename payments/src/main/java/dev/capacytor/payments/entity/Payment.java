@@ -1,21 +1,18 @@
 package dev.capacytor.payments.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import dev.capacytor.payments.entity.converter.ClassConverter;
+import dev.capacytor.payments.entity.converter.InfoConverter;
 import dev.capacytor.payments.model.PaymentType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.Map;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,14 +22,20 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Payment {
     @Id
-    @Column(unique = true, nullable = false)
-    String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "uuid")
+    UUID id;
     @Column(unique = true, nullable = false)
     String reference;
+    @Column(name="provider_reference", unique = true, nullable = false)
+    String providerReference;
     @Column(columnDefinition = "jsonb")
-    @Convert(converter = ClassConverter.class)
-    Info info;
+    @Convert(converter = InfoConverter.class)
+    @ColumnTransformer(write = "?::jsonb")
+    @Builder.Default
+    Info info = new Info();
     String description;
+    @Enumerated(value = EnumType.STRING)
     PaymentStatus status;
     @Column(name = "created_at")
     @CreationTimestamp
@@ -60,11 +63,10 @@ public class Payment {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
+    @EqualsAndHashCode
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Info {
-        @Builder.Default
-        HashMap<String, Objects> originatorInfo = new HashMap<>();
-        @JsonIgnore
+        Map<String, Object> originatorInfo;
         @Builder.Default
         MpesaInfo mpesaInfo = new MpesaInfo();
         String failureReason;

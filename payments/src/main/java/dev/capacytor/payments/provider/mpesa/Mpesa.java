@@ -1,28 +1,25 @@
 package dev.capacytor.payments.provider.mpesa;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.capacytor.payments.entity.MethodConfig;
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.capacytor.payments.entity.Payment;
-import dev.capacytor.payments.provider.mpesa.model.MpesaPayData;
 import dev.capacytor.payments.model.PayData;
 import dev.capacytor.payments.provider.mpesa.model.MpesaConfig;
+import dev.capacytor.payments.provider.mpesa.model.MpesaPayData;
 import dev.capacytor.payments.provider.mpesa.model.MpesaPaymentResult;
 import dev.capacytor.payments.provider.mpesa.model.SimulatePushRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
 public class Mpesa implements PaymentMethod {
 
-    private final MethodConfig methodConfig;
+    private final MpesaConfig mpesaConfig;
 
     private MpesaRestClient mpesaRestClient() {
-        var mpesaConfig = new ObjectMapper().convertValue(methodConfig.getIntegrationConfig(), MpesaConfig.class);
         return new MpesaRestClient(mpesaConfig);
     }
 
@@ -41,8 +38,10 @@ public class Mpesa implements PaymentMethod {
     public void pay(Payment payment) {
         var mpesaInfo = payment.getInfo().getMpesaInfo() == null ? new Payment.MpesaInfo() : payment.getInfo().getMpesaInfo();
         try {
+            payment.setStatus(Payment.PaymentStatus.PROCESSING);
             var checkoutRequestId = initiatePush(payment);
             mpesaInfo.setCheckoutRequestID(checkoutRequestId);
+            payment.setProviderReference(checkoutRequestId);
             payment.getInfo().setMpesaInfo(mpesaInfo);
         } catch (MpesaApiException e) {
             payment.setStatus(Payment.PaymentStatus.FAILED);
@@ -53,8 +52,8 @@ public class Mpesa implements PaymentMethod {
     }
 
     @Override
-    public void processResults(Payment payment, Map<String, Object> paymentResult) {
-        var mpesaPaymentResult = new ObjectMapper().convertValue(paymentResult, MpesaPaymentResult.class);
+    public void processResults(Payment payment, JsonNode paymentResult) {
+        var mpesaPaymentResult = new MpesaPaymentResult(paymentResult);
         if (mpesaPaymentResult.isSuccess()) {
             payment.setStatus(Payment.PaymentStatus.PAID);
             payment.getInfo().getMpesaInfo().setReceipt(mpesaPaymentResult.getTrxReceipt());
@@ -65,12 +64,17 @@ public class Mpesa implements PaymentMethod {
         payment.setCompletedAt(LocalDateTime.now());
     }
 
+    public static String extractProviderReference(JsonNode paymentResult) {
+        return new MpesaPaymentResult(paymentResult).getProviderReference();
+    }
+
     String initiatePush(Payment payment) throws MpesaApiException {
         var pushResponse = mpesaRestClient()
+                .authenticate()
                 .simulatePush(SimulatePushRequestDto
                         .builder()
                         .amount(payment.getAmount())
-                        .accountReference(payment.getId())
+                        .accountReference(payment.getId().toString())
                         .transactionDesc(payment.getDescription())
                         .phoneNumber(payment.getInfo().getMpesaInfo().getPhoneNumber())
                         .build());

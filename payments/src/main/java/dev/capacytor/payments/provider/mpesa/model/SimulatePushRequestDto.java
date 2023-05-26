@@ -9,7 +9,6 @@ public record SimulatePushRequestDto(
         BigDecimal amount,
         String phoneNumber,
         String accountReference,
-        String transactionDesc
-) {
+        String transactionDesc) {
 
 }

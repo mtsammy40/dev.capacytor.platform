@@ -1,15 +1,20 @@
 package dev.capacytor.payments.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Builder
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-public class PaymentResult {
-    @Builder.Default
+@AllArgsConstructor
+public abstract class PaymentResult {
+    private JsonNode rawData;
     private LocalDateTime received = LocalDateTime.now();
+
+    protected PaymentResult(JsonNode rawData) {
+        this.rawData = rawData;
+    }
 }

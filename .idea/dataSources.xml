@@ -8,5 +8,12 @@
       <jdbc-url>mongodb+srv://capacytordev.ln5upml.mongodb.net/?retryWrites=true&amp;w=majority</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="payments@161.97.150.144" uuid="cd23af0f-0f6e-4508-8b01-c5bc1d581245">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://161.97.150.144:5432/payments</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
