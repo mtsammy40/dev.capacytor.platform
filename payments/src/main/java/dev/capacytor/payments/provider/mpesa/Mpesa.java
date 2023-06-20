@@ -3,6 +3,7 @@ package dev.capacytor.payments.provider.mpesa;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.capacytor.payments.entity.Payment;
 import dev.capacytor.payments.model.PayData;
+import dev.capacytor.payments.provider.PaymentMethod;
 import dev.capacytor.payments.provider.mpesa.model.MpesaConfig;
 import dev.capacytor.payments.provider.mpesa.model.MpesaPayData;
 import dev.capacytor.payments.provider.mpesa.model.MpesaPaymentResult;
@@ -23,19 +24,23 @@ public class Mpesa implements PaymentMethod {
         return new MpesaRestClient(mpesaConfig);
     }
 
+    private Payment payment;
+
     @Override
-    public <P extends PayData> void prepare(Payment payment, P payData) {
+    public <P extends PayData> PaymentMethod prepare(Payment payment, P payData) {
         if (payData instanceof MpesaPayData mpesaPayData) {
             var mpesaInfo = payment.getInfo().getMpesaInfo() == null ? new Payment.MpesaInfo() : payment.getInfo().getMpesaInfo();
             mpesaInfo.setPhoneNumber(mpesaPayData.getPhoneNumber());
             payment.getInfo().setMpesaInfo(mpesaInfo);
+            this.payment = payment;
         } else {
             throw new IllegalArgumentException("Invalid pay data type");
         }
+        return this;
     }
 
     @Override
-    public void pay(Payment payment) {
+    public void initiate() {
         var mpesaInfo = payment.getInfo().getMpesaInfo() == null ? new Payment.MpesaInfo() : payment.getInfo().getMpesaInfo();
         try {
             payment.setStatus(Payment.PaymentStatus.PROCESSING);

@@ -2,14 +2,17 @@ package dev.capacytor.payments.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.capacytor.payments.entity.Client;
 import dev.capacytor.payments.entity.MethodConfig;
 import dev.capacytor.payments.entity.Payment;
 import dev.capacytor.payments.exception.PaymentProcessingException;
 import dev.capacytor.payments.model.CreatePaymentRequest;
+import dev.capacytor.payments.model.Currency;
 import dev.capacytor.payments.model.PayRequest;
 import dev.capacytor.payments.model.PaymentType;
+import dev.capacytor.payments.provider.cash.Cash;
 import dev.capacytor.payments.provider.mpesa.Mpesa;
-import dev.capacytor.payments.provider.mpesa.PaymentMethod;
+import dev.capacytor.payments.provider.PaymentMethod;
 import dev.capacytor.payments.provider.mpesa.model.MpesaConfig;
 import dev.capacytor.payments.provider.mpesa.model.MpesaPayData;
 import dev.capacytor.payments.repository.PaymentRepository;
@@ -29,6 +32,7 @@ public class PaymentService {
 
     final PaymentRepository paymentRepository;
     final MethodService methodService;
+    final ClientService clientService;
 
     EnumMap<PaymentType, PaymentMethod> getAvailablePaymentMethods() {
         var map = new EnumMap<PaymentType, PaymentMethod>(PaymentType.class);
@@ -38,6 +42,8 @@ public class PaymentService {
                 var mpesaConfig = new ObjectMapper()
                         .convertValue(method.getIntegrationConfig(), MpesaConfig.class);
                 map.put(PaymentType.MPESA, new Mpesa(mpesaConfig));
+            } else if (method.getType().equals(PaymentType.CASH)) {
+                map.put(PaymentType.CASH, new Cash());
             }
         });
         return map;
@@ -46,10 +52,26 @@ public class PaymentService {
 
     public Payment create(CreatePaymentRequest request) {
         log.info("Initiating payment for request {}", request);
-        // todo: check if org is active
-        // todo: check if org is within limits
-        // todo: check if org is subscribed to payment method
-        // todo: check if currency is allowed
+        var clientId = "testClient";
+        var client = clientService.getClient(clientId);
+        if (!client.getStatus().equals(Client.Status.ACTIVE)) {
+            throw new IllegalArgumentException("Client is not active");
+        }
+        var clientIsSubscribedToPaymentMethod = client
+                .getPaymentConfiguration()
+                .getAllowedMethods()
+                .stream()
+                .anyMatch(method -> method.getPaymentType().equals(request.paymentType()));
+
+        if(!clientIsSubscribedToPaymentMethod) {
+            throw new IllegalArgumentException("Client is not subscribed to payment method");
+        }
+
+        if(!client.getPaymentConfiguration().getAllowedCurrencies().contains(Currency.valueOf(request.currency()))) {
+            throw new IllegalArgumentException("Client is not subscribed to payment currency");
+        }
+
+        // todo: check if client is within limits
         var payment = Payment
                 .builder()
                 .reference(request.reference())
@@ -58,7 +80,7 @@ public class PaymentService {
                 .amount(request.amount())
                 .paymentType(request.paymentType())
                 .status(Payment.PaymentStatus.PENDING)
-                .originatorOrgId("1234567890")
+                .originatorOrgId(clientId)
                 .build();
         paymentRepository.save(payment);
         return payment;
@@ -76,8 +98,9 @@ public class PaymentService {
         if (paymentMethod == null) {
             throw new PaymentProcessingException("Payment method not available");
         }
-        paymentMethod.prepare(payment, MpesaPayData.builder().phoneNumber(payRequest.phoneNumber()).build());
-        paymentMethod.pay(payment);
+        paymentMethod
+                .prepare(payment, MpesaPayData.builder().phoneNumber(payRequest.phoneNumber()).build())
+                .initiate();
         return paymentRepository.save(payment);
     }
 

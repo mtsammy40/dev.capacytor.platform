@@ -69,6 +69,7 @@ public class Payment {
         Map<String, Object> originatorInfo;
         @Builder.Default
         MpesaInfo mpesaInfo = new MpesaInfo();
+        CashInfo cashInfo = new CashInfo();
         String failureReason;
     }
 
@@ -83,5 +84,14 @@ public class Payment {
         String merchantRequestID;
         String errorMessage;
         String receipt;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CashInfo {
+        String phoneNumber;
     }
 }
