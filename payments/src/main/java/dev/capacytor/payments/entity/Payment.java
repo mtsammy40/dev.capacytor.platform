@@ -11,7 +11,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -27,7 +28,7 @@ public class Payment {
     UUID id;
     @Column(unique = true, nullable = false)
     String reference;
-    @Column(name="provider_reference", unique = true, nullable = false)
+    @Column(name="provider_reference", unique = true)
     String providerReference;
     @Column(columnDefinition = "jsonb")
     @Convert(converter = InfoConverter.class)
@@ -46,8 +47,9 @@ public class Payment {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
     @Column(name = "originator_org_id")
-    String originatorOrgId;
+    UUID originatorOrgId;
     @Column(name = "payment_type")
+    @Enumerated(value = EnumType.STRING)
     PaymentType paymentType;
     @Column(name = "amount")
     BigDecimal amount;
@@ -66,11 +68,39 @@ public class Payment {
     @EqualsAndHashCode
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Info {
-        Map<String, Object> originatorInfo;
+        @Builder.Default
+        OrderInfo orderInfo = new OrderInfo();
         @Builder.Default
         MpesaInfo mpesaInfo = new MpesaInfo();
-        CashInfo cashInfo = new CashInfo();
+        CashInfo cashInfo;
         String failureReason;
+    }
+
+    @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
+    @Data
+    public static class OrderInfo {
+        @Builder.Default
+        private String discountPercentage = "0";
+        @Builder.Default
+        private BigDecimal discountAmount = BigDecimal.ZERO;
+        private List<Order> orders = new ArrayList<>();
+        private String customerName;
+        private String customerEmail;
+        private String customerPhoneNumber;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Order {
+        String itemDescription;
+        String quantity;
+        BigDecimal unitPrice;
+        BigDecimal totalPrice;
     }
 
     @Builder

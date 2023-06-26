@@ -6,15 +6,11 @@ import dev.capacytor.payments.entity.Client;
 import dev.capacytor.payments.entity.MethodConfig;
 import dev.capacytor.payments.entity.Payment;
 import dev.capacytor.payments.exception.PaymentProcessingException;
-import dev.capacytor.payments.model.CreatePaymentRequest;
-import dev.capacytor.payments.model.Currency;
-import dev.capacytor.payments.model.PayRequest;
-import dev.capacytor.payments.model.PaymentType;
+import dev.capacytor.payments.model.*;
 import dev.capacytor.payments.provider.cash.Cash;
 import dev.capacytor.payments.provider.mpesa.Mpesa;
 import dev.capacytor.payments.provider.PaymentMethod;
 import dev.capacytor.payments.provider.mpesa.model.MpesaConfig;
-import dev.capacytor.payments.provider.mpesa.model.MpesaPayData;
 import dev.capacytor.payments.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +48,7 @@ public class PaymentService {
 
     public Payment create(CreatePaymentRequest request) {
         log.info("Initiating payment for request {}", request);
-        var clientId = "testClient";
+        var clientId = "68f3da9d-7497-497f-b543-d7d909365226";
         var client = clientService.getClient(clientId);
         if (!client.getStatus().equals(Client.Status.ACTIVE)) {
             throw new IllegalArgumentException("Client is not active");
@@ -63,11 +59,11 @@ public class PaymentService {
                 .stream()
                 .anyMatch(method -> method.getPaymentType().equals(request.paymentType()));
 
-        if(!clientIsSubscribedToPaymentMethod) {
+        if (!clientIsSubscribedToPaymentMethod) {
             throw new IllegalArgumentException("Client is not subscribed to payment method");
         }
 
-        if(!client.getPaymentConfiguration().getAllowedCurrencies().contains(Currency.valueOf(request.currency()))) {
+        if (!client.getPaymentConfiguration().getAllowedCurrencies().contains(Currency.valueOf(request.currency()))) {
             throw new IllegalArgumentException("Client is not subscribed to payment currency");
         }
 
@@ -80,7 +76,8 @@ public class PaymentService {
                 .amount(request.amount())
                 .paymentType(request.paymentType())
                 .status(Payment.PaymentStatus.PENDING)
-                .originatorOrgId(clientId)
+                .originatorOrgId(UUID.fromString(clientId))
+                .providerReference(null)
                 .build();
         paymentRepository.save(payment);
         return payment;
@@ -91,15 +88,28 @@ public class PaymentService {
                 .orElseThrow(() -> new NoSuchElementException("Payment not found"));
     }
 
-    public Payment pay(String paymentId, PayRequest payRequest) throws PaymentProcessingException {
-        var payment = paymentRepository.findById(UUID.fromString(paymentId))
+    public PaymentStatusResponse checkStatus(@NonNull String id) {
+        var payment = get(id);
+        String reference = null;
+        if (payment.getStatus().equals(Payment.PaymentStatus.PAID)) {
+            if (payment.getPaymentType().equals(PaymentType.MPESA)) {
+                reference = payment.getInfo().getMpesaInfo().getReceipt();
+            } else {
+                reference = payment.getProviderReference();
+            }
+        }
+        return new PaymentStatusResponse(payment.getPaymentType(), payment.getStatus(), reference);
+    }
+
+    public Payment pay(PayRequest payRequest) throws PaymentProcessingException {
+        var payment = paymentRepository.findById(UUID.fromString(payRequest.getPaymentId()))
                 .orElseThrow(() -> new PaymentProcessingException("Payment not found"));
         PaymentMethod paymentMethod = getAvailablePaymentMethods().get(payment.getPaymentType());
         if (paymentMethod == null) {
             throw new PaymentProcessingException("Payment method not available");
         }
         paymentMethod
-                .prepare(payment, MpesaPayData.builder().phoneNumber(payRequest.phoneNumber()).build())
+                .prepare(payment, payRequest)
                 .initiate();
         return paymentRepository.save(payment);
     }
@@ -113,7 +123,7 @@ public class PaymentService {
     public void processMpesaResult(JsonNode result) {
         var checkoutRequestId = Mpesa.extractProviderReference(result);
         var payment = paymentRepository.findPaymentByProviderReference(checkoutRequestId)
-                .orElseThrow(() -> new RuntimeException("Payment not found :: "+ checkoutRequestId));
+                .orElseThrow(() -> new RuntimeException("Payment not found :: " + checkoutRequestId));
         processResult(payment, result);
     }
 
@@ -124,5 +134,24 @@ public class PaymentService {
         }
         paymentMethod.processResults(payment, result);
         paymentRepository.save(payment);
+    }
+
+    public CheckoutData getCheckoutData(String paymentId) {
+        var payment = get(paymentId);
+        var checkoutBuilder = CheckoutData
+                .builder()
+                .amount(payment.getAmount())
+                .currency(payment.getCurrency())
+                    .description(payment.getDescription())
+                .orderInfo(payment.getInfo().getOrderInfo());
+        if (payment.getPaymentType().equals(PaymentType.MPESA)) {
+            checkoutBuilder.paymentType(PaymentType.MPESA.name());
+            checkoutBuilder.mpesaData(CheckoutData.MpesaData.builder()
+                    .phoneNumber(payment.getInfo().getMpesaInfo().getPhoneNumber())
+                    .build());
+        } else if (payment.getPaymentType().equals(PaymentType.CASH)) {
+            checkoutBuilder.paymentType(PaymentType.CASH.name());
+        }
+        return checkoutBuilder.build();
     }
 }

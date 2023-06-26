@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping(Constants.Endpoints.PLATFORM_V1_WEBHOOKS)
+@RequestMapping(Constants.Endpoints.PLATFORM_API_V1_WEBHOOKS)
 @RequiredArgsConstructor
-public class WebhookController {
+public class ApiWebhookController {
 
     final PaymentService paymentService;
 

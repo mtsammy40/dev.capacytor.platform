@@ -185,7 +185,7 @@
         }
 
     </style>
-    <title>Whayz Cash</title>
+    <title>Kashy</title>
 </head>
 <body>
 <div class="iphone">
@@ -193,14 +193,13 @@
         <h1>Checkout</h1>
     </header>
 
-    <form action="https://httpbin.org/post" class="form" method="POST">
+    <form th:action="@{${action}}" th:object="${payRequest}" method="post" class="form">
         <div>
             <h2>Customer Details</h2>
-
             <div class="card">
                 <div>
-                    <p>Samuel Mutemi</p>
-                    <p>0724049955</p>
+                    <p th:text="${checkoutData.getOrderInfo().getCustomerName()}"></p>
+                    <p th:text="${checkoutData.getOrderInfo().getCustomerPhoneNumber()}"></p>
                 </div>
             </div>
         </div>
@@ -210,11 +209,9 @@
 
             <div class="form__radios">
                 <div class="form__radio">
-                    <label for="mpesa">
-                        <img class="icon" src="mpesa.png"/>
-                        M-Pesa Payment
-                    </label>
-                    <input checked id="mpesa" name="payment-method" type="radio"/>
+                    <img class="icon" src="../static/mpesa.png" width="1000"
+                         th:src="@{/mpesa.png}" alt="MPESA LOGO"/>
+                    <p> M-Pesa Payment</p>
                 </div>
 
                 <!--        <div class="form__radio">-->
@@ -240,28 +237,46 @@
             </div>
         </fieldset>
 
+        <fieldset th:if="${checkoutData.getPaymentType().equalsIgnoreCase('MPESA')}">
+            <legend>Enter Payment Details</legend>
+
+            <div>
+                <div>
+                    <label for="phoneNumber">Phone Number</label>
+                    <input id="phoneNumber" th:field="*{phoneNumber}" name="phoneNumber" type="text"
+                           placeholder="Mpesa Phone Number"/>
+                    <input id="paymentId" th:field="*{paymentId}" name="paymentId" hidden="hidden"/>
+                </div>
+            </div>
+        </fieldset>
+
         <div>
             <h2>You are paying for:</h2>
 
             <table>
-                <tbody>
-                <tr>
-                    <td>Shipping fee</td>
-                    <td align="right">$5.43</td>
+                <tbody th:with="orders_present = ${checkoutData.getOrderInfo().getOrders() != null && checkoutData.getOrderInfo().getOrders().size() > 0}">
+                <tr th:if="${orders_present}" th:each="order : ${checkoutData.getOrderInfo().getOrders()}">
+                    <td th:text="${order.getItemDescription()} + ' X ' + ${order.getQuantity()}"></td>
+                    <td align="right" th:text="${checkoutData.getCurrency()} + ' ' + ${order.getUnitPrice()}"></td>
+                </tr>
+                <tr th:unless="${orders_present}">
+                    <td>Item X 1</td>
+                    <td align="right" th:text="${checkoutData.getCurrency()} + ' ' + ${checkoutData.getAmount()}"></td>
                 </tr>
                 <tr>
-                    <td>Discount 10%</td>
-                    <td align="right">-$1.89</td>
+                    <td>Discount <span th:text="${checkoutData.getOrderInfo().getDiscountPercentage()} + '%'"></span>
+                    </td>
+                    <td align="right" th:text="'- ' + ${checkoutData.getOrderInfo().getDiscountAmount()}"></td>
                 </tr>
                 <tr>
                     <td>Price Total</td>
-                    <td align="right">$84.82</td>
+                    <td align="right" th:text="${checkoutData.getCurrency()} + ' ' + ${checkoutData.getAmount()}"></td>
                 </tr>
                 </tbody>
                 <tfoot>
                 <tr>
                     <td>Total</td>
-                    <td align="right">$88.36</td>
+                    <td align="right" th:text="${checkoutData.getCurrency()} + ' ' + ${checkoutData.getAmount()}"></td>
                 </tr>
                 </tfoot>
             </table>

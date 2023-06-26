@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -15,7 +16,7 @@ public class ClientService {
     private final ClientRepository clientRepository;
 
     public Client getClient(String clientId) {
-        return clientRepository.findById(clientId)
+        return clientRepository.findById(UUID.fromString(clientId))
                 .orElseThrow(() -> new NoSuchElementException("Client not found"));
     }
 }

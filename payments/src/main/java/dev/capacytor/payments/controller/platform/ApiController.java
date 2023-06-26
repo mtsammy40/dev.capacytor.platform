@@ -11,16 +11,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
-@RestController
-@RequestMapping(Constants.Endpoints.PLATFORM_V1_PAYMENTS)
+@RestController("platformApiController")
+@RequestMapping(Constants.Endpoints.PLATFORM_API_V1_PAYMENTS)
 @RequiredArgsConstructor
-public class Payments {
+public class ApiController {
 
     private final PaymentService paymentService;
 
-    @PostMapping("/{id}/pay")
-    ResponseEntity<PaymentResponse> pay(@PathVariable String id, @RequestBody() PayRequest payRequest) throws PaymentProcessingException {
-        var payment = paymentService.pay(id, payRequest);
+    @PostMapping("/pay")
+    ResponseEntity<PaymentResponse> pay(@RequestBody() PayRequest payRequest) throws PaymentProcessingException {
+        var payment = paymentService.pay(payRequest);
         return ResponseEntity
                 .ok(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString()));
     }

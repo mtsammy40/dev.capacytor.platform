@@ -1,11 +1,9 @@
 package dev.capacytor.payments.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import dev.capacytor.payments.entity.converter.InfoConverter;
 import dev.capacytor.payments.entity.converter.PaymentConfigurationConverter;
 import dev.capacytor.payments.model.Currency;
 import dev.capacytor.payments.model.PaymentType;
-import dev.capacytor.payments.provider.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +29,7 @@ public class Client {
     UUID id;
     @Enumerated(value = EnumType.STRING)
     Status status;
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "jsonb", name = "payment_configuration")
     @Convert(converter = PaymentConfigurationConverter.class)
     @ColumnTransformer(write = "?::jsonb")
     @Builder.Default
@@ -58,7 +56,8 @@ public class Client {
     @Data
     @Builder
     public static class Method {
-        boolean isDefault = false;
+        @Builder.Default
+        Boolean isDefault = false;
         PaymentType paymentType;
         LimitConfiguration limitConfiguration;
     }

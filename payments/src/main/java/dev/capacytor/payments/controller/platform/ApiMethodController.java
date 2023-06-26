@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(Constants.Endpoints.PLATFORM_V1_METHODS)
+@RequestMapping(Constants.Endpoints.PLATFORM_API_V1_METHODS)
 @RequiredArgsConstructor
 @Slf4j
-public class Methods {
+public class ApiMethodController {
 
     private final MethodService methodService;
 
