@@ -80,19 +80,22 @@ public class FormService {
                                 .setHeaderImageUrl(stageConfig.getFillingStageConfiguration().getHeaderImageUrl());
                     }
                 }
-            } else if (stageConfig.getVerificationStageConfiguration() != null) {
+            }
+            if (stageConfig.getVerificationStageConfiguration() != null) {
                 formConfiguration.getStages().add(new VerificationStage(VerificationStage
                         .VerificationStageConfiguration.builder()
                         .stageIsEnabled(stageConfig.getVerificationStageConfiguration().getStageIsEnabled())
                         .build()));
-            } else if (stageConfig.getPaymentStageConfiguration() != null) {
+            }
+            if (stageConfig.getPaymentStageConfiguration() != null) {
                 formConfiguration.getStages().add(new PaymentStage(PaymentStage
                         .PaymentStageConfiguration.builder()
-                        .stageIsEnabled(stageConfig.getPaymentStageConfiguration().getStageIsEnabled())
-                        .allowedPaymentMethods(new ArrayList<>())
+                            .stageIsEnabled(stageConfig.getPaymentStageConfiguration().getStageIsEnabled())
+                        .amount(stageConfig.getPaymentStageConfiguration().getAmount())
+                        .currency(stageConfig.getPaymentStageConfiguration().getCurrency())
+                        .minimumAmountAllowed(stageConfig.getPaymentStageConfiguration().getMinimumAmountAllowed())
+                        .description(stageConfig.getPaymentStageConfiguration().getDescription())
                         .build()));
-            } else {
-                throw new IllegalArgumentException("Invalid stage configuration");
             }
         }
         formConfiguration.getStages().add(new CompletedStage());

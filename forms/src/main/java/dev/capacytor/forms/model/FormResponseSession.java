@@ -4,6 +4,7 @@ import dev.capacytor.forms.entity.Form;
 import dev.capacytor.forms.entity.FormResponse;
 import dev.capacytor.forms.service.FormResponseService;
 import dev.capacytor.forms.service.FormService;
+import dev.capacytor.forms.service.PaymentClient;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,4 +15,5 @@ public class FormResponseSession {
     FormResponse response;
     FormService formService;
     FormResponseService responseService;
+    PaymentClient paymentClient;
 }

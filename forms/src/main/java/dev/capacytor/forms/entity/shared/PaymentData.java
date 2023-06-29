@@ -11,6 +11,7 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymentData {
     private String paymentId;
+    private String paymentUrl;
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
     private Amount paymentAmount;

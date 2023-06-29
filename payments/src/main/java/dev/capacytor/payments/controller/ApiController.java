@@ -2,6 +2,7 @@ package dev.capacytor.payments.controller;
 
 import dev.capacytor.payments.commons.Constants;
 import dev.capacytor.payments.config.NetProperties;
+import dev.capacytor.payments.entity.Payment;
 import dev.capacytor.payments.model.CreatePaymentRequest;
 import dev.capacytor.payments.model.PaymentResponse;
 import dev.capacytor.payments.service.PaymentService;
@@ -27,17 +28,27 @@ public class ApiController {
                 "/" +
                 Constants.Endpoints.WEB_V1_PAYMENTS +
                 "/" +
-                payment.getId();
+                payment.getId() +
+                "/checkout";
         return ResponseEntity
                 .created(URI.create(paymentLink))
-                .body(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString()));
+                .body(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString(), paymentLink));
     }
 
     @GetMapping("/{id}")
     ResponseEntity<PaymentResponse> getPayment(@PathVariable String id) {
         var payment = paymentService.get(id);
         return ResponseEntity
-                .ok(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString()));
+                .ok(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString(), getPaymentUrl(payment)));
+    }
+
+    String getPaymentUrl(Payment payment) {
+        return networkProperties.getDomain() +
+                "/" +
+                Constants.Endpoints.WEB_V1_PAYMENTS +
+                "/" +
+                payment.getId() +
+                "/checkout";
     }
 
 }

@@ -22,7 +22,7 @@ public class ApiController {
     ResponseEntity<PaymentResponse> pay(@RequestBody() PayRequest payRequest) throws PaymentProcessingException {
         var payment = paymentService.pay(payRequest);
         return ResponseEntity
-                .ok(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString()));
+                .ok(new PaymentResponse(payment.getReference(), payment.getStatus(), payment.getId().toString(), null));
     }
 
 }

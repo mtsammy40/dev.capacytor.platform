@@ -9,3 +9,6 @@ dev:
   capacytor:
     network:
       base: http://localhost:9001
+      payments:
+        base: http://localhost:8080
+        createPayment: /api/v1/payments

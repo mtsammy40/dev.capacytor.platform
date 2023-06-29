@@ -22,14 +22,16 @@ import java.util.stream.Collectors;
 public class FormResponseService {
     private final FormResponseRepository formResponseRepository;
     private final FormService formService;
+    private final PaymentClient paymentClient;
 
     @Autowired
-    public FormResponseService(FormResponseRepository formResponseRepository, FormService formService) {
+    public FormResponseService(FormResponseRepository formResponseRepository, FormService formService, PaymentClient paymentClient) {
         this.formResponseRepository = formResponseRepository;
         this.formService = formService;
+        this.paymentClient = paymentClient;
     }
 
-    public FormResponse createFormResponse(String formId,  @Valid CreateFormResponseDto createFormResponseDto) {
+    public FormResponse createFormResponse(String formId, @Valid CreateFormResponseDto createFormResponseDto) {
         log.info("Creating form response for form : {}", createFormResponseDto);
         var form = formService.getForm(formId);
         var userData = getUserData();
@@ -49,15 +51,21 @@ public class FormResponseService {
                 .response(formResponse)
                 .formService(formService)
                 .responseService(this)
+                .paymentClient(paymentClient)
                 .build();
 
-        while (!formResponse.getStatus().isComplete() && formResponse.getStatus().getCurrentStage() != null && !formResponse.getStatus().getCurrentStage().requiresExternalAction()) {
+        while (
+                !formResponse.getStatus().isComplete() && formResponse.getStatus().getCurrentStage() != null
+        ) {
             log.debug("Executing stage : {}", formResponse.getStatus().getCurrentStage().getClass().getSimpleName());
             responseSession.getResponse().getStatus().getCurrentStage().execute(responseSession);
+            if (responseSession.getResponse().getStatus().getCurrentStage().requiresExternalAction()) {
+                break;
+            }
             responseSession.getResponse().getStatus().moveToNextStage();
         }
 
-       return formResponseRepository.save(responseSession.getResponse());
+        return formResponseRepository.save(responseSession.getResponse());
     }
 
     private FormResponse.FormResponseStatus computeInitialFormReturnStatus(Form form) {

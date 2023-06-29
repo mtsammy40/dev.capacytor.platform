@@ -7,5 +7,9 @@ public class Constants {
     public static final int MAX_OPTIONS_ALLOWED = 255;
     public static final int MAX_STAGES_ALLOWED = 4;
 
+    public static class Endpoints {
+        public static final String FORMS = "/forms";
+    }
+
 
 }

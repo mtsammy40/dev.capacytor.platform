@@ -67,6 +67,11 @@ public class PaymentService {
             throw new IllegalArgumentException("Client is not subscribed to payment currency");
         }
 
+        var existingPaymentResult = paymentRepository.findPaymentByReference(request.reference());
+        if (existingPaymentResult.isPresent()) {
+            throw new IllegalArgumentException("Payment with reference " + request.reference() + " already exists");
+        }
+
         // todo: check if client is within limits
         var payment = Payment
                 .builder()
@@ -142,7 +147,7 @@ public class PaymentService {
                 .builder()
                 .amount(payment.getAmount())
                 .currency(payment.getCurrency())
-                    .description(payment.getDescription())
+                .description(payment.getDescription())
                 .orderInfo(payment.getInfo().getOrderInfo());
         if (payment.getPaymentType().equals(PaymentType.MPESA)) {
             checkoutBuilder.paymentType(PaymentType.MPESA.name());
